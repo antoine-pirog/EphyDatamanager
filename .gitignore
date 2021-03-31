@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+*.rhd
+*.mcd
+*.h5
+*.smr
+testdata
