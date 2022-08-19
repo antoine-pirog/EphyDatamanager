@@ -78,7 +78,20 @@ class DataSource:
             return Fs
         if self.type == DATATYPES.MED:
             return self.data['Fs']
-    def getSignal(self, i, bounds=None):
+    def getSignal(self, i, bounds=None, bounds_s=None, bounds_samples=None):
+        """ These shenanigans for backwards compatibility : use NONE or ONE of the three : bounds (in samples), bounds_s (in seconds), bounds_samples (in samples)"""
+        if not(bounds) and not(bounds_s) and not(bounds_samples):
+            bounds = None
+        elif bounds and not(bounds_s) and not(bounds_samples):
+            bounds = bounds
+        elif not(bounds) and bounds_s and not(bounds_samples):
+            bounds = (int(bounds_s[0] * self.getFs()), int(bounds_s[1] * self.getFs()))
+        elif not(bounds) and not(bounds_s) and bounds_samples:
+            bounds = bounds_samples
+        else:
+            print("Invalid bounds definition in getSignal")
+            raise
+        """ Back to the meat of the function """
         self._checkDatatype()
         self._checkDataLoaded()
         if self.type == DATATYPES.INTAN:

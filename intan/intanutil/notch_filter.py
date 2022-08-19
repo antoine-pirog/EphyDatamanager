@@ -5,6 +5,8 @@
 import math
 import numpy as np
 
+from scipy import signal # AP
+
 def notch_filter(input, fSample, fNotch, Bandwidth):
     """Implements a notch filter (e.g., for 50 or 60 Hz) on vector 'input'.
 
@@ -37,6 +39,7 @@ def notch_filter(input, fSample, fNotch, Bandwidth):
     b1 = -2.0 * math.cos(2.0*math.pi*Fc)
     b2 = 1.0
 
+    ''' AP - let's get rid of this slow nonsense ...
     out = np.zeros(len(input))
     out[0] = input[0]
     out[1] = input[1]
@@ -45,6 +48,19 @@ def notch_filter(input, fSample, fNotch, Bandwidth):
 
     # Run filter
     for i in range(2,L):
-        out[i] = (a*b2*input[i-2] + a*b1*input[i-1] + a*b0*input[i] - a2*out[i-2] - a1*out[i-1])/a0
+        out[i] = (a*b2*input[i-2] + a*b1*input[i-1] + a*b0*input[i] - a2*out[i-2] - a1*out[i-1])/a0'''
+
+    ''' ... and use scipy instead '''
+    A = [a0, a1, a2]
+    B = [a*b0, a*b1, a*b2]
+    out = signal.lfilter(B, A, input)
+
+    '''
+    On 5000 points of data :
+        * Intan filters
+          7.66 ms ± 279 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+        * Scipy filters
+          35.4 µs ± 1.93 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    '''
 
     return out

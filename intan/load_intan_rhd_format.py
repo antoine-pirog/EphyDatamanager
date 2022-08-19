@@ -121,7 +121,7 @@ def read_data(filename):
             indices['board_dig_in'] += header['num_samples_per_data_block']
             indices['board_dig_out'] += header['num_samples_per_data_block']
 
-            progressbar.inlineCycles(i, num_data_blocks, prefix="Reading data") # AP
+            progressbar.inlineCycles(i, num_data_blocks, prefix="Reading data", autoupdate=0.2) # AP
 
             # AP
             # fraction_done = 100 * (1.0 * i / num_data_blocks)
