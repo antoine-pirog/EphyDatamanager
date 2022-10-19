@@ -13,7 +13,7 @@ from .intanutil.read_one_data_block import read_one_data_block
 from .intanutil.notch_filter import notch_filter
 from .intanutil.data_to_result import data_to_result
 
-import progressbar # AP
+from .utils import progressbar # AP
 
 
 def read_data(filename):

@@ -14,7 +14,7 @@ from .intanutil.notch_filter import notch_filter
 from .intanutilplus.read_one_data_block_one_amp_channel import read_one_data_block
 from .intanutilplus.data_to_result_header_only import data_to_result
 
-import progressbar # AP
+from .utils import progressbar # AP
 
 def vbprint(verbose, *args, **kwargs):
     if verbose:

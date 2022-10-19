@@ -1,12 +1,6 @@
-from .intan.load_intan_rhd_format import read_data as read_intan
-from .intan.load_intan_rhd_format_header_only import read_data as read_intan_header
-from .intan.load_intan_rhd_format_one_amp_channel import read_data as read_intan_one_channel
-from .mcs.McsData import RawData as read_mcs
-from .spike2.read_data import read_smr as read_spike2
-from .multimed.read_data import read_multimed_data as read_multimed
-from .mcs import mymcsutil
-from .intan import myintanutil
 import numpy as np
+
+# Format-specific imports are lazy-loaded where necessary
 
 class datatypes:
     def __init__(self):
@@ -56,13 +50,22 @@ class datatypes:
 DATATYPES = datatypes()
 
 class DataSource:
-    def __init__(self, path):
+    def __init__(self, path, import_parameters=None):
         self.file_path = path
         self.type = DATATYPES.recognize(path)
         self._checkDatatype()
         self.data = None
         self._set_default_parameters()
+        if import_parameters is not None:
+            self.setImportParameters(import_parameters)
+
+    @property
+    def Fs(self):
+        ''' Returns the sampling frequency  '''
+        ''' Uses the legacy method getFs() '''
+        return self.getFs()
     def getFs(self, i=0):
+        ''' Returns the sampling frequency '''
         self._checkDatatype()
         self._checkDataLoaded()
         if self.type == DATATYPES.INTAN:
@@ -78,6 +81,7 @@ class DataSource:
             return Fs
         if self.type == DATATYPES.MED:
             return self.data['Fs']
+
     def getSignal(self, i, bounds=None, bounds_s=None, bounds_samples=None):
         """ These shenanigans for backwards compatibility : use NONE or ONE of the three : bounds (in samples), bounds_s (in seconds), bounds_samples (in samples)"""
         if not(bounds) and not(bounds_s) and not(bounds_samples):
@@ -119,13 +123,17 @@ class DataSource:
             i1 = int(blank[1] * self.getFs())
             signal[i0:i1] = 0
         return signal if not bounds else signal[bounds[0]:bounds[1]]
+
     def translateChannel(self, E):
+        ''' returns <index of channel> = translateChannel(<human-friendly name>) '''
         self._checkDatatype()
         self._checkDataLoaded()
         if self.type == DATATYPES.INTAN:
+            from .intan import myintanutil
             e = myintanutil.get_channelIdx(E, self.data)
             return e
         if self.type == DATATYPES.HDF5:
+            from .mcs import mymcsutil
             r = self.import_parameters["recording_idx"]
             a = self.import_parameters["analog_stream_idx"]
             e = mymcsutil.get_channelIdx(E, self.data, r, a)
@@ -145,52 +153,64 @@ class DataSource:
         if self.type == DATATYPES.INTAN :
             return "INTAN" # Can we find the exact information in the file ?
         return "Unknown"
-    def getAllChannels(self, custom_or_native=1):
+    def getAllChannels(self):
         self._checkDatatype()
         if self.type == DATATYPES.INTAN:
-            which = "native_channel_name" if custom_or_native else "custom_channel_name"
+            from .intan import myintanutil
+            which = "custom_channel_name" if self.import_parameters["use_custom_names"] else "native_channel_name"
             return myintanutil.get_allChannels() # FIXME
         if self.type == DATATYPES.HDF5:
+            from .mcs import mymcsutil
             return mymcsutil.get_allChannels(self.data, recording_index=self.import_parameters["recording_idx"], stream_index=self.import_parameters["analog_stream_idx"]) # FIXME
-    def getAvailableChannels(self, custom_or_native=1):
+        if self.type == DATATYPES.MULTIMED:
+            return [i for i in range(64)]
+    def getAvailableChannels(self):
         self._checkDatatype()
         if self.data is None:
             self.load() # force load
         if self.type == DATATYPES.SMR:
             channels = [ch.name for ch in self.data.segments[0].analogsignals]
-            print(channels)
             return channels
         elif self.type == DATATYPES.INTAN:
-            which = "native_channel_name" if custom_or_native else "custom_channel_name"
+            which = "custom_channel_name" if self.import_parameters["use_custom_names"] else "native_channel_name"
             channels = [chan[which] for chan in self.data['amplifier_channels']]
+        elif self.type == DATATYPES.MULTIMED:
+            channels= [i for i in range(64)]
         else:
             channels = []
         return channels
-
     def load(self):
         self._checkDatatype()
         if self.type == DATATYPES.INTAN:
+            from .intan.load_intan_rhd_format import read_data as read_intan
+            from .intan.load_intan_rhd_format_header_only import read_data as read_intan_header
             if not(self.import_parameters["is_huge"]):
                 self.data = read_intan(self.file_path)
             else:
                 self.data = read_intan_header(self.file_path)
                 self.data["currently_loaded"] = {"channel": None}
         if self.type == DATATYPES.HDF5:
+            from .mcs.McsData import RawData as read_mcs
             self.data = read_mcs(self.file_path)
         if self.type == DATATYPES.SMR:
+            from .spike2.read_data import read_smr as read_spike2
             self.data = read_spike2(self.file_path)
         if self.type == DATATYPES.MED:
+            from .multimed.read_data import read_multimed_data as read_multimed
             self.data = read_multimed(self.file_path, quantum=self.import_parameters['quantum'])
     def load_one_channel(self, i):
         if self.type == DATATYPES.INTAN:
+            from .intan.load_intan_rhd_format_one_amp_channel import read_data as read_intan_one_channel
             self.data = read_intan_one_channel(self.file_path, i)
             self.data["currently_loaded"] = {"channel": i}
         if self.type == DATATYPES.HDF5:
+            from .mcs.McsData import RawData as read_mcs
             print("Unsupported")
-            self.data = {}
+            raise NotImplementedError
         if self.type == DATATYPES.SMR:
+            from .spike2.read_data import read_smr as read_spike2
             print("Unsupported")
-            self.data = {}
+            raise NotImplementedError
 
     def unload(self):
         del self.data
@@ -203,6 +223,7 @@ class DataSource:
             self.import_parameters["analog_stream_idx"] = 0
         if self.type == DATATYPES.INTAN:
             self.import_parameters["is_huge"] = False
+            self.import_parameters["use_custom_names"] = False
         if self.type == DATATYPES.MED:
             self.import_parameters["quantum"] = 1
     def setImportParameters(self, parameters):
