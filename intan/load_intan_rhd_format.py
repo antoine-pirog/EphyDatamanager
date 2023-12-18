@@ -72,7 +72,7 @@ def read_data(filename):
 
         data = {}
         if (header['version']['major'] == 1 and header['version']['minor'] >= 2) or (header['version']['major'] > 1):
-            data['t_amplifier'] = np.zeros(num_amplifier_samples, dtype=np.int)
+            data['t_amplifier'] = np.zeros(num_amplifier_samples, dtype=int)
         else:
             data['t_amplifier'] = np.zeros(num_amplifier_samples, dtype=np.uint)
 
