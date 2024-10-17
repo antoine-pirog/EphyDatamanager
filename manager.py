@@ -102,6 +102,9 @@ class AbstractDataSource(ABC):
         print("getAvailableChannels is deprecated. Use getChannels instead")
         return self.getChannels()
     # Internal methods
+    def setImportParameters(self, parameters):
+        for k in parameters:
+            self.import_parameters[k] = parameters[k]
     @abstractmethod
     def _getSignal_formatspecific(self, i):
         """ This is the "format specific" part of the getSignal method : retrieve signal of channel i here """
