@@ -5,7 +5,7 @@ from . import mymcsutil
 class H5DataSource(DataSource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    def getFs(self):
+    def getFs(self, i=0):
         self._checkDatatype()
         self._checkDataLoaded()
         r = self.import_parameters["recording_idx"]
