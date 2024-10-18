@@ -49,7 +49,6 @@ class H5DataSource(DataSource):
         for i,c in enumerate(analog_channels.channel_infos.values()):
             if not(c.label in COI_MCS):
                 COI_MCS.append(c.label)
-                print(f"Got channel {c.label} at index {i} ; rec_idx={rec_index}; strm_idx={stream_index})")
         return COI_MCS
     def _set_default_parameters_formatspecific(self):
         self.import_parameters["recording_idx"] = 0
