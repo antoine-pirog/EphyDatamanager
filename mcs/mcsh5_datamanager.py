@@ -1,7 +1,5 @@
 from ..manager import AbstractDataSource as DataSource
 
-from . import mymcsutil
-
 class H5DataSource(DataSource):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,9 +46,10 @@ class H5DataSource(DataSource):
         stream_index = self.import_parameters["analog_stream_idx"]
         analog_channels = self.data.recordings[rec_index].analog_streams[stream_index]
         COI_MCS = []
-        for c in analog_channels.channel_infos.values():
+        for i,c in enumerate(analog_channels.channel_infos.values()):
             if not(c.label in COI_MCS):
                 COI_MCS.append(c.label)
+                print(f"Got channel {c.label} at index {i} ; rec_idx={rec_index}; strm_idx={stream_index})")
         return COI_MCS
     def _set_default_parameters_formatspecific(self):
         self.import_parameters["recording_idx"] = 0
