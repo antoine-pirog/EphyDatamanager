@@ -2,18 +2,6 @@ import os
 import struct
 import numpy as np
 
-def read_multimed_data(path, quantum=1, Fs=10000, Nchannels=64, data_format=">i2"):
-    filesize = os.path.getsize(path)
-    bytes_per_sample = np.dtype(data_format).itemsize
-    Nsamples = int(filesize / (Nchannels * bytes_per_sample))
-    # TODO : check that filesize is divisible by Nchannels * bytes_per_sample, otherwise raise a warning
-    with open(path, 'rb') as fid:
-        data = np.fromfile(fid, dtype=data_format, count=Nsamples*Nchannels)
-    data = data.reshape(Nsamples, Nchannels)
-    return {'data': data*quantum, 'Fs': Fs, 'len': Nsamples, 'channels': [i for i in range(Nchannels)], 'quantum': quantum}
-
-###############
-
 def read_bin_multichannel(filepath, quantum=1, skip_s=0, length_s=0, Fs=10_000, N_channels=64, data_format=">i2", verbosity=0):
     # filepath : path to the .bin file
     # quantum  : acquisition quantum
