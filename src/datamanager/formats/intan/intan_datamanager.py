@@ -1,9 +1,9 @@
-from ..manager import AbstractDataSource as DataSource
+from datamanager.manager import AbstractDataSource as DataSource
 
-from . import myintanutil
-from .load_intan_rhd_format import read_data as read_intan
-from .load_intan_rhd_format_header_only import read_data as read_intan_header
-from .load_intan_rhd_format_one_amp_channel import read_data as read_intan_one_channel
+from datamanager.formats.intan import myintanutil
+from datamanager.formats.intan.load_intan_rhd_format import read_data as read_intan
+from datamanager.formats.intan.load_intan_rhd_format_header_only import read_data as read_intan_header
+from datamanager.formats.intan.load_intan_rhd_format_one_amp_channel import read_data as read_intan_one_channel
 
 class IntanDataSource(DataSource):
     def __init__(self, *args, **kwargs):

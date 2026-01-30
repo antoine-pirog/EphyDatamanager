@@ -6,14 +6,13 @@
 import sys, struct, math, os, time
 import numpy as np
 
+from datamanager.formats.intan.intanutil.read_header import read_header
+from datamanager.formats.intan.intanutil.get_bytes_per_data_block import get_bytes_per_data_block
+from datamanager.formats.intan.intanutil.read_one_data_block import read_one_data_block
+from datamanager.formats.intan.intanutil.notch_filter import notch_filter
+from datamanager.formats.intan.intanutil.data_to_result import data_to_result
 
-from .intanutil.read_header import read_header
-from .intanutil.get_bytes_per_data_block import get_bytes_per_data_block
-from .intanutil.read_one_data_block import read_one_data_block
-from .intanutil.notch_filter import notch_filter
-from .intanutil.data_to_result import data_to_result
-
-from ..utils import progressbar # AP
+from datamanager.utils import progressbar # AP
 
 
 def read_data(filename):

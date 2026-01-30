@@ -1,22 +1,20 @@
-""" Ensure module tested can be imported """
-import sys
-sys.path.append("../../") # datamanager is there
-
 """ Module to test """
 from datamanager import manager
+
+testdata_folder = r"C:\Users\apirog\OneDrive - JUNIA Grande école d'ingénieurs\Documents\Recherche\PythonScripts\testdata"
 
 """ Test files """
 testvectors = [
     {
-        "path" : "../../testdata/Perf_noise nouveau compresseur_201211_152948.rhd",
+        "path" : f"{testdata_folder}/Perf_noise nouveau compresseur_201211_152948.rhd",
         "channel_translation" : [("A-000", 0), ("B-031", 63)], # (channel_name, expected_channel_idx)
     },
     {
-        "path" : "../../testdata/20210601_HD4_WT_downsampling.h5",
+        "path" : f"{testdata_folder}/20210601_HD4_WT_downsampling.h5",
         "channel_translation" : [("H6", 0), ("H2", 59)], # (channel_name, expected_channel_idx)
     },
     {
-        "path" : "../../testdata/20211101_SYAMV1_DAQ_MEA_heaton.bin",
+        "path" : f"{testdata_folder}/20211101_SYAMV1_DAQ_MEA_heaton.bin",
         "channel_translation" : [("0", 0), ("63", 63)], # (channel_name, expected_channel_idx)
     }
 ]

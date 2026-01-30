@@ -7,14 +7,13 @@
 import sys, struct, math, os, time
 import numpy as np
 
+from datamanager.formats.intan.intanutil.read_header import read_header
+from datamanager.formats.intan.intanutil.get_bytes_per_data_block import get_bytes_per_data_block
+from datamanager.formats.intan.intanutil.notch_filter import notch_filter
+from datamanager.formats.intan.intanutilplus.read_one_data_block_one_amp_channel import read_one_data_block
+from datamanager.formats.intan.intanutilplus.data_to_result_one_amp_channel import data_to_result
 
-from .intanutil.read_header import read_header
-from .intanutil.get_bytes_per_data_block import get_bytes_per_data_block
-from .intanutil.notch_filter import notch_filter
-from .intanutilplus.read_one_data_block_one_amp_channel import read_one_data_block
-from .intanutilplus.data_to_result_one_amp_channel import data_to_result
-
-from ..utils import progressbar # AP
+from datamanager.utils import progressbar # AP
 
 def vbprint(verbose, *args, **kwargs):
     if verbose:

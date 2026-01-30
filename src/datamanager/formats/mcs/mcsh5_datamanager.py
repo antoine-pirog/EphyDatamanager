@@ -1,4 +1,13 @@
-from ..manager import AbstractDataSource as DataSource
+import sys
+import importlib.resources
+from datamanager.manager import AbstractDataSource as DataSource
+
+MCS_LIB_VERSIONS = [
+    "Versions/McsPyDataTools040",
+    "Versions/McsPyDataTools041",
+    "Versions/McsPyDataTools042",
+    "Versions/McsPyDataTools043",
+]
 
 class H5DataSource(DataSource):
     def __init__(self, *args, **kwargs):
@@ -21,20 +30,22 @@ class H5DataSource(DataSource):
         self._checkDatatype()
         # Cycle through format versions to find the right one
         print("MCS import - autoloading (cycling versions)")
-        from .Versions.McsPyDataTools041.McsPy.McsData import RawData as RawData041
-        from .Versions.McsPyDataTools042.McsPy.McsData import RawData as RawData042
-        from .Versions.McsPyDataTools040.McsPy.McsData import RawData as RawData040
-        from .Versions.McsPyDataTools043.McsPy.McsData import RawData as RawData043
-        for read_mcs in [RawData043,RawData042,RawData041,RawData040]:
+        for mcsdata_lib_path in MCS_LIB_VERSIONS:
             try:
+                import_path = importlib.resources.files("datamanager.formats.mcs").joinpath(mcsdata_lib_path)
+                sys.path.insert(0, str(import_path))
+                from McsPy.McsData import RawData as read_mcs
                 self.data = read_mcs(self.file_path)
                 print(f"  Success for {read_mcs}")
                 break
             except AttributeError:
+                sys.path.pop(0)
                 print(f"  Failed for {read_mcs} (AttributeError)")
             except IOError:
+                sys.path.pop(0)
                 print(f"  Failed for {read_mcs} (IOError)")
             except:
+                sys.path.pop(0)
                 print(f"  Failed for {read_mcs} (Unexpected error)")
     def load_one_channel(self, i):
         print("Warning : loading one channel is not supported by current software. Regular loading instead.")

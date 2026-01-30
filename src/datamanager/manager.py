@@ -14,7 +14,37 @@ DATATYPES = SimpleNamespace(**
     }
 )
 
-def recognize(file_path):
+def DataSource(path, import_parameters=None):
+    """
+    Returns a DataSource object for the supported signal formats
+    
+    Automatically recognizes the input file format and returns the corresponding DataSource object
+    Legacy / Legibility function : this function calls open_datasource, but looks like an instanciation of a "DataSource" class
+    """
+    return open_datasource(path=path, import_parameters=import_parameters)
+
+def open_datasource(path, import_parameters=None):
+    """
+    Returns a DataSource object for the supported signal formats
+    
+    Automatically recognizes the input file format and returns the corresponding DataSource object
+    """
+    filetype = recognize_datatype(path)
+    if filetype == DATATYPES.INTAN:
+        from datamanager.formats.intan.intan_datamanager import IntanDataSource
+        return IntanDataSource(path=path, import_parameters=import_parameters)
+    if filetype == DATATYPES.MCSH5:
+        from datamanager.formats.mcs.mcsh5_datamanager import H5DataSource
+        return H5DataSource(path=path, import_parameters=import_parameters)
+    if filetype == DATATYPES.BIN:
+        from datamanager.formats.bin.bin_datamanager import BinDataSource
+        return BinDataSource(path=path, import_parameters=import_parameters)
+    raise Exception("Unsupported format")
+
+def recognize_datatype(file_path):
+    """
+    Recognizes the requested data type
+    """
     if not(file_path):
         raise Exception("No file specified.")
     # TODO : recognize by header where possible
@@ -33,23 +63,10 @@ def recognize(file_path):
     else:
         raise Exception("Could not recognize data type from specified file.")
 
-def DataSource(path, import_parameters=None):
-    filetype = recognize(path)
-    if filetype == DATATYPES.INTAN:
-        from .intan.intan_datamanager import IntanDataSource
-        return IntanDataSource(path=path, import_parameters=import_parameters)
-    if filetype == DATATYPES.MCSH5:
-        from .mcs.mcsh5_datamanager import H5DataSource
-        return H5DataSource(path=path, import_parameters=import_parameters)
-    if filetype == DATATYPES.BIN:
-        from .bin.bin_datamanager import BinDataSource
-        return BinDataSource(path=path, import_parameters=import_parameters)
-    raise Exception("Unsupported format")
-
 class AbstractDataSource(ABC):
     def __init__(self, path, import_parameters=None):
         self.file_path = path
-        self.type = recognize(path)
+        self.type = recognize_datatype(path)
         self._checkDatatype()
         self.data = None
         self._set_default_parameters()
@@ -58,17 +75,32 @@ class AbstractDataSource(ABC):
     # Load/unload methods
     @abstractmethod
     def load(self):
+        """ 
+        Loads data at DataSource.file_path in RAM 
+        """
         pass
     @abstractmethod
     def load_one_channel(self):
+        """ 
+        Loads on channel of data at DataSource.file_path in RAM 
+        """
         pass
     def unload(self):
+        """ 
+        Frees RAM from loaded data 
+        """
         del self.data
     # Signal-related methods
     @abstractmethod
     def getFs(self):
+        """ 
+        Returns sampling frequency, in Hz 
+        """
         pass
     def getSignal(self, ch, bounds=None, bounds_s=None, bounds_samples=None):
+        """ 
+        Returns signal at requested channel and within the requested time bounds 
+        """
         bounds = self._checkSignalBounds(bounds, bounds_s, bounds_samples)
         i      = self._checkRequestedChannel(ch)
         self._checkDatatype()
@@ -79,7 +111,9 @@ class AbstractDataSource(ABC):
         return signal
     # Channel-related methods
     def translateChannel(self, chname):
-        """ Translates channel name (str) to the channel index (int) as used in the loaded data structure """
+        """ 
+        Translates channel name (str) to the channel index (int) as used in the loaded data structure 
+        """
         self._checkDatatype()
         self._checkDataLoaded()
         allchannels = self.getChannels()
@@ -89,13 +123,22 @@ class AbstractDataSource(ABC):
         return allchannels.index(chname)
     @abstractmethod
     def getChannels(self):
+        """ 
+        Returns the list of available channels in recording 
+        """
         pass
     def getAllChannels(self): 
-        # Legacy method
+        """ 
+        Returns the list of available channels in recording 
+        (legacy method, use getChannels instead)
+        """
         print("getAllChannels is deprecated. Use getChannels instead")
         return self.getChannels()
     def getAvailableChannels(self): 
-        # Legacy method
+        """ 
+        Returns the list of available channels in recording 
+        (legacy method, use getChannels instead)
+        """
         print("getAvailableChannels is deprecated. Use getChannels instead")
         return self.getChannels()
     # Internal methods
@@ -104,7 +147,9 @@ class AbstractDataSource(ABC):
             self.import_parameters[k] = parameters[k]
     @abstractmethod
     def _getSignal_formatspecific(self, i):
-        """ This is the "format specific" part of the getSignal method : retrieve signal of channel i here """
+        """ 
+        This is the "format specific" part of the getSignal method : retrieve signal of channel i here 
+        """
         pass
     def _set_default_parameters(self):
         self.import_parameters = {}
@@ -129,13 +174,15 @@ class AbstractDataSource(ABC):
             else:
                 raise Exception("Datasource : Data not loaded.")
     def _checkSignalBounds(self, bounds, bounds_s, bounds_samples):
-        # Legacy function : processes signal bounds in either the old format (only samples) 
-        # or the new (either seconds or samples), and returns them in the new format (samples)
-        #   * bounds         : bounds provided in samples (old format)
-        #   * bounds_s       : bounds provided in seconds (new format), relies on proper definition of sampling frequency
-        #   * bounds_samples : bounds provided in samples (new format)
-        # All bounds provided should be a tuple (beginning, end)
-        # Only one set of bounds should be provided
+        """
+        Legacy function : processes signal bounds in either the old format (only samples) 
+        or the new (either seconds or samples), and returns them in the new format (samples)
+          * bounds         : bounds provided in samples (old format)
+          * bounds_s       : bounds provided in seconds (new format), relies on proper definition of sampling frequency
+          * bounds_samples : bounds provided in samples (new format)
+        All bounds provided should be a tuple (beginning, end)
+        Only one set of bounds should be provided
+        """
         if not(bounds) and not(bounds_s) and not(bounds_samples):
             # If no bounds provided, nothing to do
             bounds_samples = None

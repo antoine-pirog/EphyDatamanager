@@ -1,6 +1,5 @@
-from ..manager import AbstractDataSource as DataSource
-
-from .read_data import read_bin_multichannel, read_bin_singlechannel
+from datamanager.manager import AbstractDataSource as DataSource
+from datamanager.formats.bin.read_data import read_bin_multichannel, read_bin_singlechannel
 
 class BinDataSource(DataSource):
     def __init__(self, *args, **kwargs):
