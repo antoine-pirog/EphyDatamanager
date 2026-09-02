@@ -8,6 +8,7 @@ MCS_LIB_VERSIONS = [
     "Versions/McsPyDataTools042",
     "Versions/McsPyDataTools043",
 ]
+MCS_LIB_VERSIONS.sort(reverse=True) # Put most recent versions at the top of the list to prioritize them
 
 class H5DataSource(DataSource):
     def __init__(self, *args, **kwargs):
